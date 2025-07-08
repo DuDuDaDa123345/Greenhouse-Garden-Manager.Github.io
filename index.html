@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温室花园 - 管理中心</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --accent: #8bc34a;
+            --text: #e0e0e0;
+            --text-light: #aaaaaa;
+            --background: #0c1217;
+            --card-bg: rgba(30, 40, 48, 0.7);
+            --glass-bg: rgba(30, 40, 48, 0.5);
+            --border: rgba(76, 175, 80, 0.15);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --success: #388e3c;
+            --warning: #f57c00;
+            --danger: #e53935;
+            --highlight: #00c7b7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0f14 0%, #151e26 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* macOS风格标题栏 */
+        .title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(20, 25, 32, 0.7);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .title-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .control-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .close { background: #ff5f57; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28c940; }
+        
+        .title-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text);
+            flex: 1;
+            text-align: center;
+        }
+        
+        .title-time {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        /* 主容器 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 20px;
+            height: calc(100vh - 90px);
+        }
+        
+        /* 数据概览卡片 */
+        .overview-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            grid-column: 1 / span 2;
+        }
+        
+        .overview-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 15px;
+            box-shadow: 0 4px 20px var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .overview-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+        }
+        
+        .card-icon.temp {
+            background: linear-gradient(135deg, #ff7043, #f57c00);
+        }
+        
+        .card-icon.alert {
+            background: linear-gradient(135deg, #ff5252, #e53935);
+        }
+        
+        .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+        
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        
+        .card-trend {
+            font-size: 12px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .card-trend.down {
+            color: var(--danger);
+        }
+        
+        /* 地图区域 */
+        .map-area {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .map-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .map-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .map-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .map-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .map-btn.active {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+        }
+        
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 40px);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a1c26;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+            touch-action: none;
+            cursor: grab;
+        }
+        
+        .map-container:active {
+            cursor: grabbing;
+        }
+        
+        .map-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease;
+            will-change: transform;
+        }
+        
+        .map-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        /* 热力图标记 */
+        .heat-point {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.7;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        /* 设备状态面板 */
+        .device-panel {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .device-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .device-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--success);
+            transition: all 0.3s ease;
+        }
+        
+        .device-item.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .device-item.critical {
+            border-left-color: var(--danger);
+            background: rgba(229, 57, 53, 0.1);
+        }
+        
+        .device-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .device-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .device-location {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .device-status {
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(56, 142, 60, 0.2);
+            color: var(--success);
+        }
+        
+        .device-status.warning {
+            background: rgba(245, 124, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        .device-status.critical {
+            background: rgba(229, 57, 53, 0.2);
+            color: var(--danger);
+        }
+        
+        /* 报警面板 */
+        .alert-panel {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            grid-column: 1 / span 2;
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .alert-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .alert-item {
+            background: rgba(245, 124, 0, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 3px solid var(--warning);
+        }
+        
+        .alert-item.critical {
+            background: rgba(229, 57, 53, 0.1);
+            border-left-color: var(--danger);
+        }
+        
+        .alert-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .alert-item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .alert-item-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .alert-item-content {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+        
+        /* 热力图图例 */
+        .heat-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 25, 32, 0.8);
+            border-radius: 8px;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 20;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .legend-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            border-radius: 2px;
+        }
+        
+        .legend-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        /* 缩放控制 */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(20, 25, 32, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+        
+        .zoom-btn:active {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        /* 装饰元素 */
+        .decoration {
+            position: absolute;
+            z-index: 0;
+            opacity: 0.05;
+            color: var(--primary);
+        }
+        
+        .leaf-1 {
+            top: 5%;
+            left: 5%;
+            font-size: 120px;
+            transform: rotate(-20deg);
+        }
+        
+        .leaf-2 {
+            bottom: 10%;
+            right: 5%;
+            font-size: 100px;
+            transform: rotate(25deg);
+        }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(76, 175, 80, 0.4);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(76, 175, 80, 0.6);
+        }
+        
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* 调试信息 */
+        .debug-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 100;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 装饰元素 -->
+    <div class="decoration leaf-1">
+        <i class="fas fa-leaf"></i>
+    </div>
+    <div class="decoration leaf-2">
+        <i class="fas fa-leaf"></i>
+    </div>
+    
+    <!-- macOS风格标题栏 -->
+    <div class="title-bar">
+        <div class="title-controls">
+            <div class="control-btn close"></div>
+            <div class="control-btn minimize"></div>
+            <div class="control-btn maximize"></div>
+        </div>
+        <div class="title-text">温室花园 - 管理中心</div>
+        <div class="title-time" id="current-time">14:25</div>
+    </div>
+    
+    <!-- 仪表盘主区域 -->
+    <div class="dashboard">
+        <!-- 概览卡片 -->
+        <div class="overview-cards">
+            <div class="overview-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-title">当前总人数</div>
+
+                <div class="card-value">142</div>
+                <div class="card-trend">
+                    <i class="fas fa-arrow-up"></i> 12% 较昨日
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon">
+                    <i class="fas fa-thermometer-half"></i>
+                </div>
+                <div class="card-title">平均温度</div>
+                <div class="card-value">27.3°C</div>
+                <div class="card-trend">
+                    <i class="fas fa-arrow-down"></i> 1.2°C 较昨日
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon temp">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="card-title">平均湿度</div>
+                <div class="card-value">68%</div>
+                <div class="card-trend">
+                    <i class="fas fa-arrow-up"></i> 3% 较昨日
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="card-title">报警状态</div>
+                <div class="card-value">3</div>
+                <div class="card-trend down">
+                    <i class="fas fa-arrow-up"></i> 1 新报警
+                </div>
+            </div>
+        </div>
+        
+        <!-- 地图区域 -->
+        <div class="map-area">
+            <div class="map-header">
+                <div class="map-title">
+                    <i class="fas fa-map-marked-alt"></i> 实时热力图
+                </div>
+                <div class="map-controls">
+                    <button class="map-btn active">热力图</button>
+                    <button class="map-btn">设备视图</button>
+                    <button class="map-btn">路径分析</button>
+                </div>
+            </div>
+            <div class="map-container" id="mapContainer">
+                <div class="map-content" id="mapContent">
+                    <img src="images\Map.png" alt="温室花园地图" class="map-image" id="mapImage">
+                    
+                    <!-- 热力图点将由JS生成 -->
+                </div>
+                
+                <!-- 缩放控制按钮 -->
+                <div class="zoom-controls">
+                    <div class="zoom-btn" id="zoomIn">+</div>
+                    <div class="zoom-btn" id="zoomOut">−</div>
+                </div>
+                
+                <!-- 图例 -->
+                <div class="heat-legend">
+                    <div class="legend-title">人流量热力图例</div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00c7b7;"></div>
+                        <div class="legend-label">低 (0-10人)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00e3d0;"></div>
+                        <div class="legend-label">中 (11-30人)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00ffea;"></div>
+                        <div class="legend-label">高 (31-50人)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff8a00;"></div>
+                        <div class="legend-label">超高 (>50人)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设备状态面板 -->
+        <div class="device-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fas fa-microchip"></i> 设备状态
+                </div>
+                <div style="font-size: 14px; color: var(--text-light);">12台设备</div>
+            </div>
+            <div class="device-list">
+                <div class="device-item">
+                    <div class="device-info">
+                        <div class="device-name">A区温控系统</div>
+                        <div class="device-location">热带植物区</div>
+                    </div>
+                    <div class="device-status">正常</div>
+                </div>
+                <div class="device-item warning">
+                    <div class="device-info">
+                        <div class="device-name">B区喷淋系统</div>
+                        <div class="device-location">水生植物区</div>
+                    </div>
+                    <div class="device-status warning">水压不足</div>
+                </div>
+                <div class="device-item">
+                    <div class="device-info">
+                        <div class="device-name">主入口闸机</div>
+                        <div class="device-location">入口区</div>
+                    </div>
+                    <div class="device-status">正常</div>
+                </div>
+                <div class="device-item critical">
+                    <div class="device-info">
+                        <div class="device-name">C区光照系统</div>
+                        <div class="device-location">沙漠植物区</div>
+                    </div>
+                    <div class="device-status critical">故障</div>
+                </div>
+                <div class="device-item">
+                    <div class="device-info">
+                        <div class="device-name">D区湿度传感器</div>
+                        <div class="device-location">雨林区</div>
+                    </div>
+                    <div class="device-status">正常</div>
+                </div>
+                <div class="device-item">
+                    <div class="device-info">
+                        <div class="device-name">安保摄像头#12</div>
+                        <div class="device-location">西侧通道</div>
+                    </div>
+                    <div class="device-status">正常</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 报警面板 -->
+        <div class="alert-panel">
+            <div class="alert-header">
+                <div class="alert-title">
+                    <i class="fas fa-exclamation-circle"></i> 报警信息
+                </div>
+                <div style="font-size: 14px; color: var(--danger);">3条未处理</div>
+            </div>
+            <div class="alert-list">
+                <div class="alert-item critical">
+                    <div class="alert-item-header">
+                        <div class="alert-item-title">紧急: 温度异常</div>
+                        <div class="alert-item-time">14:05</div>
+                    </div>
+                    <div class="alert-item-content">
+                        沙漠植物区温度超过安全阈值 (38.7°C)，请立即处理
+                    </div>
+                </div>
+                <div class="alert-item">
+                    <div class="alert-item-header">
+                        <div class="alert-item-title">警告: 人流量大</div>
+                        <div class="alert-item-time">13:48</div>
+                    </div>
+                    <div class="alert-item-content">
+                        入口区人数超过承载量 (87人)，建议疏导分流
+                    </div>
+                </div>
+                <div class="alert-item">
+                    <div class="alert-item-header">
+                        <div class="alert-item-title">警告: 设备异常</div>
+                        <div class="alert-item-time">13:22</div>
+                    </div>
+                    <div class="alert-item-content">
+                        B区喷淋系统水压不足，可能影响植物生长
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 调试信息面板 -->
+    <div class="debug-panel" id="debugPanel"></div>
+
+    <script>
+        // 更新时间显示的函数
+        function updateDateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            // 更新时间显示
+            document.getElementById('current-time').textContent = `${hours}:${minutes}`;
+        }
+        
+        // 生成热力图点
+        function generateHeatPoints() {
+            const mapContainer = document.getElementById('mapContainer');
+            const mapContent = document.getElementById('mapContent');
+            
+            // 清除现有的热力点
+            const existingPoints = document.querySelectorAll('.heat-point');
+            existingPoints.forEach(point => point.remove());
+            
+            // 创建模拟热力点
+            const heatPoints = [
+                { x: 20, y: 30, intensity: 45 },   // 入口区
+                { x: 35, y: 25, intensity: 12 },   // 休息区
+                { x: 55, y: 40, intensity: 28 },   // 点位1
+                { x: 40, y: 85, intensity: 65 },   // 咖啡厅
+                { x: 75, y: 85, intensity: 15 },   // 沙漠植物区
+                { x: 90, y: 80, intensity: 30 }    // 出口区
+            ];
+            
+            heatPoints.forEach(point => {
+                const heatPoint = document.createElement('div');
+                heatPoint.className = 'heat-point';
+                
+                // 根据人数强度设置颜色和大小
+                let color, size;
+                if (point.intensity < 10) {
+                    color = '#00c7b7';
+                    size = 30;
+                } else if (point.intensity < 30) {
+                    color = '#00e3d0';
+                    size = 50;
+                } else if (point.intensity < 50) {
+                    color = '#00ffea';
+                    size = 70;
+                } else {
+                    color = '#ff8a00';
+                    size = 90;
+                }
+                
+                // 设置点的样式
+                heatPoint.style.width = `${size}px`;
+                heatPoint.style.height = `${size}px`;
+                heatPoint.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+                heatPoint.style.left = `${point.x}%`;
+                heatPoint.style.top = `${point.y}%`;
+                
+                mapContent.appendChild(heatPoint);
+            });
+        }
+        
+        // 设置地图缩放和拖动功能
+        function setupMapInteraction() {
+            const mapContainer = document.getElementById('mapContainer');
+            const mapContent = document.getElementById('mapContent');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const debugPanel = document.getElementById('debugPanel');
+            
+            let scale = 1;
+            let translateX = 0;
+            let translateY = 0;
+            let isDragging = false;
+            let startX, startY;
+            let startTranslateX, startTranslateY;
+            const minScale = 0.5;
+            const maxScale = 3;
+            
+            // 更新地图变换
+            function updateTransform() {
+                mapContent.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                
+                // 调试信息
+                debugPanel.innerHTML = `缩放: ${scale.toFixed(2)} | 位置: (${translateX.toFixed(0)}, ${translateY.toFixed(0)})`;
+            }
+            
+            // 限制变换范围，避免地图移出容器
+            function clampTransform() {
+                const containerRect = mapContainer.getBoundingClientRect();
+                const contentRect = mapContent.getBoundingClientRect();
+                
+                // 计算内容在缩放后的尺寸
+                const scaledWidth = contentRect.width * scale;
+                const scaledHeight = contentRect.height * scale;
+                
+                // 计算最大可移动范围
+                const maxTranslateX = (scaledWidth - containerRect.width) / 2;
+                const maxTranslateY = (scaledHeight - containerRect.height) / 2;
+                
+                // 限制平移范围
+                translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
+                translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                
+                // 限制缩放范围
+                scale = Math.max(minScale, Math.min(maxScale, scale));
+            }
+            
+            // 鼠标滚轮缩放
+            mapContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                const rect = mapContainer.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                // 计算鼠标位置相对于地图中心的偏移
+                const mouseX = offsetX - rect.width / 2;
+                const mouseY = offsetY - rect.height / 2;
+                
+                // 计算缩放前的比例
+                const oldScale = scale;
+                
+                // 根据滚轮方向调整缩放比例
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                scale *= zoomFactor;
+                
+                // 计算缩放后鼠标位置应保持不变的偏移
+                translateX = (translateX - mouseX) * (scale / oldScale) + mouseX;
+                translateY = (translateY - mouseY) * (scale / oldScale) + mouseY;
+                
+                // 限制变换范围
+                clampTransform();
+                updateTransform();
+            });
+            
+            // 鼠标拖动
+            mapContainer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startTranslateX = translateX;
+                startTranslateY = translateY;
+                mapContainer.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    
+                    translateX = startTranslateX + dx;
+                    translateY = startTranslateY + dy;
+                    
+                    clampTransform();
+                    updateTransform();
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                mapContainer.style.cursor = 'grab';
+            });
+            
+            // 触摸拖动
+            let touchStartX, touchStartY;
+            let touchStartTranslateX, touchStartTranslateY;
+            
+            mapContainer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    isDragging = true;
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    touchStartTranslateX = translateX;
+                    touchStartTranslateY = translateY;
+                }
+            });
+            
+            mapContainer.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - touchStartX;
+                    const dy = touch.clientY - touchStartY;
+                    
+                    translateX = touchStartTranslateX + dx;
+                    translateY = touchStartTranslateY + dy;
+                    
+                    clampTransform();
+                    updateTransform();
+                }
+            });
+            
+            mapContainer.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+            
+            // 按钮缩放
+            zoomInBtn.addEventListener('click', () => {
+                const oldScale = scale;
+                scale *= 1.2;
+                
+                // 计算中心点缩放
+                const rect = mapContainer.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // 调整位置以保持中心点不变
+                translateX = (translateX - centerX) * (scale / oldScale) + centerX;
+                translateY = (translateY - centerY) * (scale / oldScale) + centerY;
+                
+                clampTransform();
+                updateTransform();
+            });
+            
+            zoomOutBtn.addEventListener('click', () => {
+                const oldScale = scale;
+                scale *= 0.8;
+                
+                // 计算中心点缩放
+                const rect = mapContainer.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // 调整位置以保持中心点不变
+                translateX = (translateX - centerX) * (scale / oldScale) + centerX;
+                translateY = (translateY - centerY) * (scale / oldScale) + centerY;
+                
+                clampTransform();
+                updateTransform();
+            });
+            
+            // 初始化地图位置
+            clampTransform();
+            updateTransform();
+        }
+        
+        // 模拟实时数据更新
+        function updateSimulatedData() {
+            // 随机更新总人数
+            const totalVisitors = document.querySelector('.overview-card .card-value');
+            const currentCount = parseInt(totalVisitors.textContent);
+            const newCount = Math.max(100, Math.min(200, currentCount + Math.floor(Math.random() * 10) - 4));
+            totalVisitors.textContent = newCount;
+            
+            // 随机更新温度
+            const tempValue = document.querySelector('.overview-card:nth-child(2) .card-value');
+            const currentTemp = parseFloat(tempValue.textContent);
+            const newTemp = Math.max(25, Math.min(30, currentTemp + (Math.random() - 0.5)));
+            tempValue.textContent = newTemp.toFixed(1) + '°C';
+            
+            // 更新热力图
+            generateHeatPoints();
+        }
+        
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化时间显示
+            updateDateTime();
+            
+            // 每秒更新时间
+            setInterval(updateDateTime, 60000);
+            
+            // 生成初始热力图
+            generateHeatPoints();
+            
+            // 每5秒更新一次模拟数据
+            setInterval(updateSimulatedData, 5000);
+            
+            // 添加设备项点击效果
+            const deviceItems = document.querySelectorAll('.device-item');
+            deviceItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    deviceItems.forEach(i => i.style.border = '1px solid transparent');
+                    this.style.border = '1px solid var(--highlight)';
+                });
+            });
+            
+            // 添加地图按钮点击效果
+            const mapBtns = document.querySelectorAll('.map-btn');
+            mapBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    mapBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 设置地图交互功能
+            setupMapInteraction();
+            
+            // 替换为本地地图（在实际环境中，您需要将图片放在images/map.png）
+            // document.getElementById('mapImage').src = 'images/map.png';
+        });
+    </script>
+</body>
+</html>
